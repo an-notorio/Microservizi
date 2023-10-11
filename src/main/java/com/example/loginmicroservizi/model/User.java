@@ -35,13 +35,15 @@ public class User implements UserDetails {
     @JoinTable(name = "users_roles",
     joinColumns = {@JoinColumn(name = "userId")},
             inverseJoinColumns = {@JoinColumn(name = "roleId")})
-    private RoleName role;
+    private List<Role> role;
 
 
+    @Transient
+    private Collection<? extends GrantedAuthority> authorities;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return (Collection<? extends GrantedAuthority>) authorities;
     }
 
     @Override

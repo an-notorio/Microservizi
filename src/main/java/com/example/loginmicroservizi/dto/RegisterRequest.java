@@ -1,9 +1,12 @@
 package com.example.loginmicroservizi.dto;
 
+import com.example.loginmicroservizi.model.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -15,4 +18,5 @@ public class RegisterRequest {
     private String lastName;
     private String email;
     private String password;
+    private List<Role> role;
 }
