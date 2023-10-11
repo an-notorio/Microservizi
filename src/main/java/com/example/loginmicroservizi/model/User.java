@@ -26,11 +26,12 @@ import java.util.List;
 public class User implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue
     @Column(name = "user_id", unique = true, nullable = false)
-    private Integer id;
+    private Integer userId;
     private String firstName;
     private String lastName;
+    @Column(unique = true)
     private String email;
     private String password;
     private boolean status;

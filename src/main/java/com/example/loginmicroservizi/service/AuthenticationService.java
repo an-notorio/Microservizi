@@ -87,7 +87,7 @@ public class AuthenticationService {
                     .email(email)
                     .password(password)
                     .role(role)
-                    .id(userId)
+                    .userId(userId)
                     .status(true)
                     .build();
 
@@ -98,10 +98,8 @@ public class AuthenticationService {
 
 
     public void deleteUser(Integer userId) {
-        var user = User.builder()
-                .id(userId)
-                .status(false)
-                .build();
+        User user = repository.findByUserId(userId);
+        user.setStatus(false);
         repository.save(user);
     }
 }
