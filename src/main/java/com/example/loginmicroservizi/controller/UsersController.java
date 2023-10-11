@@ -4,6 +4,7 @@ import com.example.loginmicroservizi.dto.AuthenticationRequest;
 import com.example.loginmicroservizi.dto.AuthenticationResponse;
 import com.example.loginmicroservizi.dto.RegisterRequest;
 import com.example.loginmicroservizi.service.AuthenticationService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +19,7 @@ public class UsersController {
 
     private final AuthenticationService service;
 
+    @Operation(summary = "register a USER")
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(
             @RequestBody RegisterRequest request
@@ -25,6 +27,7 @@ public class UsersController {
         return ResponseEntity.ok(service.register(request));
     }
 
+    @Operation(summary = "login")
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> authenticate(
             @RequestBody AuthenticationRequest request
