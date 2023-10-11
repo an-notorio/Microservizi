@@ -33,7 +33,7 @@ public class UsersController {
         return ResponseEntity.ok(service.authenticate(request));
     }
 
-
+    @Operation(summary = "update a USER")
     @PutMapping("/update/{userId}")
     public ResponseEntity<?> update(@RequestBody RegisterRequest request, @PathVariable Integer userId) {
         service.updateUser(request, userId);
@@ -42,6 +42,7 @@ public class UsersController {
 
     }
 
+    @Operation(summary = "delete a USER")
     @PutMapping("/delete/{userId}")
     public ResponseEntity<?> delete(@PathVariable Integer userId) {
         service.deleteUser(userId);
