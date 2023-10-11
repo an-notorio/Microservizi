@@ -33,10 +33,13 @@ public class User implements UserDetails {
     private String lastName;
     private String email;
     private String password;
+    private boolean status;
     @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private Date creationDate;
     @UpdateTimestamp
     private Date updateDate;
+
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "users_roles",

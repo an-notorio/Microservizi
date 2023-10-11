@@ -6,11 +6,9 @@ import com.example.loginmicroservizi.dto.RegisterRequest;
 import com.example.loginmicroservizi.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
@@ -34,6 +32,23 @@ public class UsersController {
     ){
         return ResponseEntity.ok(service.authenticate(request));
     }
+
+
+    @PutMapping("/update/{userId}")
+    public ResponseEntity<?> update(@RequestBody RegisterRequest request, @PathVariable Integer userId) {
+        service.updateUser(request, userId);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+
+    }
+
+    @PutMapping("/delete/{userId}")
+    public ResponseEntity<?> delete(@PathVariable Integer userId) {
+        service.deleteUser(userId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
 
 
 }

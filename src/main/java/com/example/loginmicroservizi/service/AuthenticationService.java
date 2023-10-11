@@ -28,6 +28,7 @@ public class AuthenticationService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
+                .status(true)
                 .build();
         repository.save(user);
         var jwtToken = jwtService.generateToken(user);
@@ -51,6 +52,25 @@ public class AuthenticationService {
                 .build();
     }
 
+    public void updateUser(RegisterRequest request, Integer userId) {
+        var user = User.builder()
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole())
+                .id(userId)
+                .status(true)
+                .build();
+        repository.save(user);
+    }
 
 
+    public void deleteUser(Integer userId) {
+        var user = User.builder()
+                .id(userId)
+                .status(false)
+                .build();
+        repository.save(user);
+    }
 }

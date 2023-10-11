@@ -19,4 +19,5 @@ public class RegisterRequest {
     private String email;
     private String password;
     private List<Role> role;
+    private boolean status;
 }
