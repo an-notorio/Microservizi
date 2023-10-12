@@ -3,6 +3,7 @@ package com.example.loginmicroservizi.service;
 import com.example.loginmicroservizi.dto.AuthenticationRequest;
 import com.example.loginmicroservizi.dto.AuthenticationResponse;
 import com.example.loginmicroservizi.dto.RegisterRequest;
+import com.example.loginmicroservizi.dto.UserDto;
 import com.example.loginmicroservizi.model.Role;
 import com.example.loginmicroservizi.model.User;
 import com.example.loginmicroservizi.repository.UsersRepository;
@@ -109,5 +110,18 @@ public class AuthenticationService {
         User user = repository.findByUserId(userId);
         user.setStatus(false);
         repository.save(user);
+    }
+
+    public UserDto getUser(Integer userId){
+        User user = repository.findByUserId(userId);
+
+        var userToShow = UserDto.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build();
+
+        return userToShow;
     }
 }
