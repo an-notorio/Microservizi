@@ -35,6 +35,7 @@ public class User implements UserDetails {
     private String email;
     private String password;
     private boolean status;
+    private Integer attempts;
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Date creationDate;

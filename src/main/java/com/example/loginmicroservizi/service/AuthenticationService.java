@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public class AuthenticationService {
                     .email(request.getEmail())
                     .password(passwordEncoder.encode(request.getPassword()))
                     .role(request.getRole())
+                    .attempts(0)
                     .status(true)
                     .build();
             repository.save(user);
@@ -46,22 +48,36 @@ public class AuthenticationService {
     }
 
     public ResponseEntity<?> authenticate(AuthenticationRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
         var user = repository.findByEmail(request.getEmail())
                 .orElseThrow();
-        if(user.isStatus()){
-            var jwtToken = jwtService.generateToken(user);
-            return ResponseEntity.ok(AuthenticationResponse.builder()
-                    .token(jwtToken)
-                    .build());
-        }
-        else{
-            return ResponseEntity.ok("User is disabled");
+        if(user.getAttempts()<3) {
+            try{
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                request.getEmail(),
+                                request.getPassword()
+                        )
+                );}
+            catch (Exception e){
+                user.setAttempts(user.getAttempts()+1);
+                if(user.getAttempts()==3){
+                    user.setStatus(false);
+                }
+                repository.save(user);
+                return ResponseEntity.ok("Error - Wrong Password");
+            }
+            user.setAttempts(0);
+            if (user.isStatus()) {
+                repository.save(user);
+                var jwtToken = jwtService.generateToken(user);
+                return ResponseEntity.ok(AuthenticationResponse.builder()
+                        .token(jwtToken)
+                        .build());
+            } else {
+                return ResponseEntity.ok("User is disabled");
+            }
+        }else{
+            return ResponseEntity.ok("Error - max attempts reached - User Disabled");
         }
     }
 
