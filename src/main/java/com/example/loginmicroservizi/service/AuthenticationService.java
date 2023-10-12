@@ -50,10 +50,16 @@ public class AuthenticationService {
         );
         var user = repository.findByEmail(request.getEmail())
                 .orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
+        if(user.isStatus()==true){
+            var jwtToken = jwtService.generateToken(user);
+            return AuthenticationResponse.builder()
+                    .token(jwtToken)
+                    .build();
+        }
+        else{
+            return null;
+        }
+
     }
 
    /* public void updateUser(RegisterRequest request, Integer userId) {
