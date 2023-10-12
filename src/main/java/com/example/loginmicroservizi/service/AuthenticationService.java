@@ -1,6 +1,5 @@
 package com.example.loginmicroservizi.service;
 
-import com.example.loginmicroservizi.common.RoleName;
 import com.example.loginmicroservizi.dto.AuthenticationRequest;
 import com.example.loginmicroservizi.dto.AuthenticationResponse;
 import com.example.loginmicroservizi.dto.RegisterRequest;
@@ -8,6 +7,7 @@ import com.example.loginmicroservizi.model.Role;
 import com.example.loginmicroservizi.model.User;
 import com.example.loginmicroservizi.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,23 +25,27 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthenticationResponse register(RegisterRequest request) {
-        var user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
-                .status(true)
-                .build();
-        repository.save(user);
-        var jwtToken = jwtService.generateToken(user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
+    public ResponseEntity<?> register(RegisterRequest request) {
+        if(repository.findByEmail(request.getEmail()).isPresent()){
+            return ResponseEntity.ok("Email already used");
+        }else {
+            var user = User.builder()
+                    .firstName(request.getFirstName())
+                    .lastName(request.getLastName())
+                    .email(request.getEmail())
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .role(request.getRole())
+                    .status(true)
+                    .build();
+            repository.save(user);
+            var jwtToken = jwtService.generateToken(user);
+            return ResponseEntity.ok(AuthenticationResponse.builder()
+                    .token(jwtToken)
+                    .build());
+        }
     }
 
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    public ResponseEntity<?> authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
@@ -50,30 +54,16 @@ public class AuthenticationService {
         );
         var user = repository.findByEmail(request.getEmail())
                 .orElseThrow();
-        if(user.isStatus()==true){
+        if(user.isStatus()){
             var jwtToken = jwtService.generateToken(user);
-            return AuthenticationResponse.builder()
+            return ResponseEntity.ok(AuthenticationResponse.builder()
                     .token(jwtToken)
-                    .build();
+                    .build());
         }
         else{
-            return null;
+            return ResponseEntity.ok("User is disabled");
         }
-
     }
-
-   /* public void updateUser(RegisterRequest request, Integer userId) {
-        var user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
-                .id(userId)
-                .status(true)
-                .build();
-        repository.save(user);
-    }*/
 
     public void updateUser(RegisterRequest request, Integer userId) {
         // Recupera l'utente originale dal repository

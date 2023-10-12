@@ -19,18 +19,18 @@ public class UsersController {
 
     @Operation(summary = "register a USER")
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(
+    public ResponseEntity<?> register(
             @RequestBody RegisterRequest request
     ){
-        return ResponseEntity.ok(service.register(request));
+        return service.register(request);
     }
 
     @Operation(summary = "login")
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> authenticate(
+    public ResponseEntity<?> authenticate(
             @RequestBody AuthenticationRequest request
     ){
-        return ResponseEntity.ok(service.authenticate(request));
+            return service.authenticate(request);
     }
 
     @Operation(summary = "update a USER")
