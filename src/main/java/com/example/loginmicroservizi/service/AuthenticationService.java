@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -102,12 +101,9 @@ public class AuthenticationService {
                     .userId(userId)
                     .status(true)
                     .build();
-
             repository.save(updatedUser);
         }
     }
-
-
 
     public void deleteUser(Integer userId) {
         User user = repository.findByUserId(userId);

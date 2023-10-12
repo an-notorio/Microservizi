@@ -37,9 +37,7 @@ public class UsersController {
     @PutMapping("/update/{userId}")
     public ResponseEntity<?> update(@RequestBody RegisterRequest request, @PathVariable Integer userId) {
         service.updateUser(request, userId);
-
         return new ResponseEntity<>(HttpStatus.OK);
-
     }
 
     @Operation(summary = "delete a USER")
@@ -48,9 +46,5 @@ public class UsersController {
         service.deleteUser(userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
-
-
-
 }
 
