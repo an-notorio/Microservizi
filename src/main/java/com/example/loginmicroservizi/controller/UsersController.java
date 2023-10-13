@@ -45,11 +45,10 @@ public class UsersController {
     }
 
     @Operation(summary = "delete a USER")
-    @Secured("ADMIN")
+    @Secured("USER")
     @PutMapping("/delete/{userId}")
     public ResponseEntity<?> delete(@PathVariable Integer userId) {
         service.deleteUser(userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
-

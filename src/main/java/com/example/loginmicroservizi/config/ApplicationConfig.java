@@ -1,6 +1,7 @@
 package com.example.loginmicroservizi.config;
 
 import com.example.loginmicroservizi.repository.UsersRepository;
+import com.example.loginmicroservizi.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,11 +20,11 @@ public class ApplicationConfig {
 
     private final UsersRepository repository;
 
-    @Bean
+    /*@Bean
     public UserDetailsService userDetailsService(){
         return username -> repository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    }
+    }*/
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -41,5 +42,11 @@ public class ApplicationConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return new UserDetailsServiceImpl();
     }
 }
