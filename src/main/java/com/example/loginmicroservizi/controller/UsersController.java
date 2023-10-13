@@ -5,9 +5,12 @@ import com.example.loginmicroservizi.dto.AuthenticationResponse;
 import com.example.loginmicroservizi.dto.RegisterRequest;
 import com.example.loginmicroservizi.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -35,12 +38,14 @@ public class UsersController {
 
     @Operation(summary = "update a USER")
     @PutMapping("/update/{userId}")
-    public ResponseEntity<?> update(@RequestBody RegisterRequest request, @PathVariable Integer userId) {
-        service.updateUser(request, userId);
+    @PreAuthorize("@securityService.hasPermission(#request, #userId)")
+    public ResponseEntity<?> update(@RequestBody RegisterRequest registerRequest, @PathVariable Integer userId, HttpServletRequest request) {
+        service.updateUser(registerRequest, userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Operation(summary = "delete a USER")
+    @Secured("ADMIN")
     @PutMapping("/delete/{userId}")
     public ResponseEntity<?> delete(@PathVariable Integer userId) {
         service.deleteUser(userId);

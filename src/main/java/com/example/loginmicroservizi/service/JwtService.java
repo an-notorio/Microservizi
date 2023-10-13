@@ -1,21 +1,30 @@
 package com.example.loginmicroservizi.service;
 
+import com.example.loginmicroservizi.model.User;
+import com.example.loginmicroservizi.repository.UsersRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
+
+    @Autowired
+    private UsersRepository usersRepository;
 
     private static final String SECRET_KEY = "44993b7ba1f547e5c2dce92e3f341c63e1631793a7e8490e53a2c0d4b2613f17";
 
@@ -36,9 +45,13 @@ public class JwtService {
             Map<String, Object> extraClaims,
             UserDetails userDetails
     ){
+        Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
+        User user = usersRepository.findAllByEmail(userDetails.getUsername()).get(0);
+        List<SimpleGrantedAuthority> authorities = user.getRole().stream().map(role -> new SimpleGrantedAuthority("" + role.getRole())).collect(Collectors.toList());
+        claims.put("roles", authorities);
         return Jwts
                 .builder()
-                .setClaims(extraClaims)
+                .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
