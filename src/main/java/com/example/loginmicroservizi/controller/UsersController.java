@@ -51,4 +51,10 @@ public class UsersController {
         service.deleteUser(userId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @GetMapping("/prova")
+    public ResponseEntity<?> getProva() {
+        String x = "ciao prova riuscita";
+        return new ResponseEntity<> (x,HttpStatus.OK);
+    }
 }
