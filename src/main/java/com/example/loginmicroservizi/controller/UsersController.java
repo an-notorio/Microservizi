@@ -45,8 +45,8 @@ public class UsersController {
     }
 
     @Operation(summary = "delete a USER")
-    @Secured("USER")
-    @PutMapping("/delete/{userId}")
+//    @Secured("USER")
+    @DeleteMapping("/delete/{userId}")
     public ResponseEntity<?> delete(@PathVariable Integer userId) {
         service.deleteUser(userId);
         return new ResponseEntity<>(HttpStatus.OK);
@@ -56,5 +56,16 @@ public class UsersController {
     public ResponseEntity<?> getProva() {
         String x = "ciao prova riuscita";
         return new ResponseEntity<> (x,HttpStatus.OK);
+    }
+    @Secured("ADMIN")
+    @GetMapping("/getUsersTrue")
+    public ResponseEntity<?> getUsersTrue() {
+        return new ResponseEntity<> (service.findAll(true),HttpStatus.OK);
+    }
+
+    @Secured("ADMIN")
+    @GetMapping("/getUsersFalse")
+    public ResponseEntity<?> getUsersFalse() {
+        return new ResponseEntity<> (service.findAll(false),HttpStatus.OK);
     }
 }

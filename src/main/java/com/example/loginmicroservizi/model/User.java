@@ -1,12 +1,12 @@
 package com.example.loginmicroservizi.model;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -21,6 +21,9 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name="_user")
+@SQLDelete(sql = "UPDATE _user SET deleted = true WHERE user_id=?")
+@FilterDef(name = "deletedUserFilter", parameters = @ParamDef(name = "isDeleted", type = Boolean.class))
+@Filter(name = "deletedUserFilter", condition = "deleted = :isDeleted")
 public class User implements UserDetails {
 
     @Id
@@ -46,6 +49,7 @@ public class User implements UserDetails {
     joinColumns = {@JoinColumn(name = "userId")},
             inverseJoinColumns = {@JoinColumn(name = "roleId")})
     private List<Role> role;
+    private boolean deleted = Boolean.FALSE;
 
 
     @Transient

@@ -7,7 +7,11 @@ import com.example.loginmicroservizi.dto.UserDto;
 import com.example.loginmicroservizi.model.Role;
 import com.example.loginmicroservizi.model.User;
 import com.example.loginmicroservizi.repository.UsersRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Filter;
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,6 +29,8 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    @Autowired
+    private EntityManager entityManager;
 
     public ResponseEntity<?> register(RegisterRequest request) {
         if(repository.findByEmail(request.getEmail()).isPresent()){
@@ -107,9 +113,7 @@ public class AuthenticationService {
     }
 
     public void deleteUser(Integer userId) {
-        User user = repository.findByUserId(userId);
-        user.setStatus(false);
-        repository.save(user);
+        repository.deleteById(userId);
     }
 
     public UserDto getUser(Integer userId){
@@ -123,5 +127,14 @@ public class AuthenticationService {
                 .build();
 
         return userToShow;
+    }
+
+    public Iterable<User> findAll(boolean isDeleted){
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter("deletedUserFilter");
+        filter.setParameter("isDeleted", isDeleted);
+        Iterable<User> products =  repository.findAll();
+        session.disableFilter("deletedUserFilter");
+        return products;
     }
 }
