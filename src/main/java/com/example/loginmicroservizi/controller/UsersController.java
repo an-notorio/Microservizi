@@ -5,6 +5,7 @@ import com.example.loginmicroservizi.dto.AuthenticationResponse;
 import com.example.loginmicroservizi.dto.RegisterRequest;
 import com.example.loginmicroservizi.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -67,5 +68,10 @@ public class UsersController {
     @GetMapping("/getUsersFalse")
     public ResponseEntity<?> getUsersFalse() {
         return new ResponseEntity<> (service.findAll(false),HttpStatus.OK);
+    }
+    @GetMapping("/mail")
+    public ResponseEntity<?> sendMail() throws MessagingException {
+        service.triggerMail("AAA","hello from mail!");
+        return new ResponseEntity<> (HttpStatus.OK);
     }
 }

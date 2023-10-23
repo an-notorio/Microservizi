@@ -7,6 +7,7 @@ import com.example.loginmicroservizi.dto.UserDto;
 import com.example.loginmicroservizi.model.Role;
 import com.example.loginmicroservizi.model.User;
 import com.example.loginmicroservizi.repository.UsersRepository;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Filter;
@@ -31,6 +32,8 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     @Autowired
     private EntityManager entityManager;
+    @Autowired
+    private EmailSenderService senderService;
 
     public ResponseEntity<?> register(RegisterRequest request) {
         if(repository.findByEmail(request.getEmail()).isPresent()){
@@ -138,4 +141,11 @@ public class AuthenticationService {
         return products;
     }
 
+    //SEND MAIL
+    public void triggerMail(String mail, String token) throws MessagingException {
+        senderService.sendSimpleEmail("bifulco.domenico01@gmail.com",
+                "Reset password",
+                token);
+
+    }
 }
