@@ -83,7 +83,7 @@ public class AuthenticationService {
                 return ResponseEntity.ok("User is disabled");
             }
         }else{
-            return ResponseEntity.ok("Error - max attempts reached - User Disabled");
+            return ResponseEntity.ok("Error - max attempts reached - User Disabled"); //TODO temporary disable login
         }
     }
 
@@ -137,4 +137,5 @@ public class AuthenticationService {
         session.disableFilter("deletedUserFilter");
         return products;
     }
+
 }
