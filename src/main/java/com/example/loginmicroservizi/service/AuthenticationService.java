@@ -24,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -169,20 +170,26 @@ public class AuthenticationService {
 
     public ResponseEntity<?> resetPassword(ResetPasswordDto resetPasswordDto, String token){
         User user = repository.findAllByEmail(jwtService.extractUsername(token)).get(0);
-        if(jwtService.isTokenValid(token,user)){
-            if(resetPasswordDto.getPassword().equals(resetPasswordDto.getRepeatPassword())){
-                user.setPassword(resetPasswordDto.getPassword());
-                repository.save(user);
-                return new ResponseEntity<> (HttpStatus.OK);
+        ResetPsw resetPsw = resetPswRepository.findResetPswByResetToken(token);
+        if(!resetPsw.isExpired()){
+            if(jwtService.isTokenValid(token,user)){
+                if(resetPasswordDto.getPassword().equals(resetPasswordDto.getRepeatPassword())){
+                    user.setPassword(resetPasswordDto.getPassword());
+                    repository.save(user);
+                    resetPsw.setExpireAt(LocalDateTime.now());
+                    resetPswRepository.save(resetPsw);
+                    return new ResponseEntity<> (HttpStatus.OK);
+                }
+                else{
+                    return new ResponseEntity<> ("Password Incorrect",HttpStatus.BAD_REQUEST);
+                }
             }
             else{
-                return new ResponseEntity<> ("Password Incorrect",HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<> ("Token Invalid",HttpStatus.FORBIDDEN);
             }
         }
         else{
-            return new ResponseEntity<> ("Token Invalid",HttpStatus.FORBIDDEN);
+            return new ResponseEntity<> ("Token expired",HttpStatus.FORBIDDEN);
         }
     }
-
-
 }
