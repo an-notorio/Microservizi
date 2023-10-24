@@ -1,9 +1,6 @@
 package com.example.loginmicroservizi.controller;
 
-import com.example.loginmicroservizi.dto.AuthenticationRequest;
-import com.example.loginmicroservizi.dto.AuthenticationResponse;
-import com.example.loginmicroservizi.dto.ForgotPasswordDto;
-import com.example.loginmicroservizi.dto.RegisterRequest;
+import com.example.loginmicroservizi.dto.*;
 import com.example.loginmicroservizi.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.mail.MessagingException;
@@ -82,5 +79,10 @@ public class UsersController {
         return new ResponseEntity<> (HttpStatus.OK);
     }
 
-    
+    @PostMapping("/resetPassword")
+    public  ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto, @RequestParam(required = false) String token){
+        return service.resetPassword(resetPasswordDto, token);
+    }
+
+
 }

@@ -1,10 +1,7 @@
 package com.example.loginmicroservizi.service;
 
 import ch.qos.logback.core.net.SyslogOutputStream;
-import com.example.loginmicroservizi.dto.AuthenticationRequest;
-import com.example.loginmicroservizi.dto.AuthenticationResponse;
-import com.example.loginmicroservizi.dto.RegisterRequest;
-import com.example.loginmicroservizi.dto.UserDto;
+import com.example.loginmicroservizi.dto.*;
 import com.example.loginmicroservizi.model.ResetPsw;
 import com.example.loginmicroservizi.model.Role;
 import com.example.loginmicroservizi.model.User;
@@ -19,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Filter;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -169,8 +167,22 @@ public class AuthenticationService {
 
     }
 
-//    public void buildVerificationUrl(final String token){
-//        final String url= UriComponentsBuilder.fromHttpUrl("http://localhost:8081")
-//                .path("/api/resetPassword").queryParam("token", token).toUriString();
-//    }
+    public ResponseEntity<?> resetPassword(ResetPasswordDto resetPasswordDto, String token){
+        User user = repository.findAllByEmail(jwtService.extractUsername(token)).get(0);
+        if(jwtService.isTokenValid(token,user)){
+            if(resetPasswordDto.getPassword().equals(resetPasswordDto.getRepeatPassword())){
+                user.setPassword(resetPasswordDto.getPassword());
+                repository.save(user);
+                return new ResponseEntity<> (HttpStatus.OK);
+            }
+            else{
+                return new ResponseEntity<> ("Password Incorrect",HttpStatus.BAD_REQUEST);
+            }
+        }
+        else{
+            return new ResponseEntity<> ("Token Invalid",HttpStatus.FORBIDDEN);
+        }
+    }
+
+
 }
