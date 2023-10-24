@@ -2,6 +2,7 @@ package com.example.loginmicroservizi.controller;
 
 import com.example.loginmicroservizi.dto.AuthenticationRequest;
 import com.example.loginmicroservizi.dto.AuthenticationResponse;
+import com.example.loginmicroservizi.dto.ForgotPasswordDto;
 import com.example.loginmicroservizi.dto.RegisterRequest;
 import com.example.loginmicroservizi.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -74,4 +75,12 @@ public class UsersController {
         service.triggerMail("AAA","hello from mail!");
         return new ResponseEntity<> (HttpStatus.OK);
     }
+
+    @PostMapping("/forgotPassword")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordDto email) throws MessagingException {
+        service.forgotPassword(email.getMail());
+        return new ResponseEntity<> (HttpStatus.OK);
+    }
+
+    
 }

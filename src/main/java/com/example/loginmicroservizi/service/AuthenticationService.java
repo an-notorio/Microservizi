@@ -1,12 +1,18 @@
 package com.example.loginmicroservizi.service;
 
+import ch.qos.logback.core.net.SyslogOutputStream;
 import com.example.loginmicroservizi.dto.AuthenticationRequest;
 import com.example.loginmicroservizi.dto.AuthenticationResponse;
 import com.example.loginmicroservizi.dto.RegisterRequest;
 import com.example.loginmicroservizi.dto.UserDto;
+import com.example.loginmicroservizi.model.ResetPsw;
 import com.example.loginmicroservizi.model.Role;
 import com.example.loginmicroservizi.model.User;
+import com.example.loginmicroservizi.repository.ResetPswRepository;
 import com.example.loginmicroservizi.repository.UsersRepository;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +24,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +35,7 @@ import java.util.Optional;
 public class AuthenticationService {
 
     private final UsersRepository repository;
+    private final ResetPswRepository resetPswRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -148,4 +157,20 @@ public class AuthenticationService {
                 token);
 
     }
+
+    public void forgotPassword(String email) throws MessagingException {
+        User user = repository.findAllByEmail(email).get(0);
+        String token = jwtService.generateTokenResetPsw(user);
+        String url = UriComponentsBuilder.fromHttpUrl("http://localhost:8081")
+                .path("/api/resetPassword").queryParam("token", token).toUriString();
+        triggerMail(email, url);
+        var resetPsw = ResetPsw.builder()
+                .resetToken(token);
+
+    }
+
+//    public void buildVerificationUrl(final String token){
+//        final String url= UriComponentsBuilder.fromHttpUrl("http://localhost:8081")
+//                .path("/api/resetPassword").queryParam("token", token).toUriString();
+//    }
 }

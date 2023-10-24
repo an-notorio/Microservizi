@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -20,9 +21,11 @@ public class ResetPsw {
     @Id
     @GeneratedValue
     private Long idReset;
+    @Column(unique = true)
     private String resetToken;
     //TODO Need to be rewrite when used
     private LocalDateTime expireAt;
+    @CreationTimestamp
     private Timestamp timeStamp;
 
     @ManyToOne

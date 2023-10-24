@@ -1,6 +1,8 @@
 package com.example.loginmicroservizi.service;
 
+import com.example.loginmicroservizi.model.ResetPsw;
 import com.example.loginmicroservizi.model.User;
+import com.example.loginmicroservizi.repository.ResetPswRepository;
 import com.example.loginmicroservizi.repository.UsersRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -13,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +28,9 @@ public class JwtService {
 
     @Autowired
     private UsersRepository usersRepository;
+    @Autowired
+    private ResetPswRepository resetPswRepository;
+
 
     private static final String SECRET_KEY = "44993b7ba1f547e5c2dce92e3f341c63e1631793a7e8490e53a2c0d4b2613f17";
 
@@ -57,6 +63,38 @@ public class JwtService {
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public String generateTokenResetPsw(UserDetails userDetails) {
+        return generateTokenResetPsw(new HashMap<>(), userDetails);
+    }
+
+    public String generateTokenResetPsw(
+            Map<String, Object> extraClaims,
+            UserDetails userDetails
+    ){
+        Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
+        User user = usersRepository.findAllByEmail(userDetails.getUsername()).get(0);
+        List<SimpleGrantedAuthority> authorities = user.getRole().stream().map(role -> new SimpleGrantedAuthority("" + role.getRole())).collect(Collectors.toList());
+        claims.put("roles", authorities);
+        var jwts = Jwts
+                .builder()
+                .setClaims(claims)
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
+
+        var resetPsw = ResetPsw.builder()
+                .resetToken(jwts)
+                .expireAt(LocalDateTime.now().plusSeconds(60 * 24))
+                .user(user)
+                .build();
+
+        resetPswRepository.save(resetPsw);
+
+        return jwts;
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
