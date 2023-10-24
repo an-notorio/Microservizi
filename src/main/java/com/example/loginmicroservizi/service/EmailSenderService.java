@@ -16,7 +16,8 @@ public class EmailSenderService {
                                 String body
     ) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("notorioangelo@gmail.com");
+        //TODO insert correct email instead of "example@mail.com"
+        message.setFrom("example@mail.com");
         message.setTo(toEmail);
         message.setText(body);
         message.setSubject(subject);
