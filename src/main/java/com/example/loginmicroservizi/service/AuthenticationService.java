@@ -174,7 +174,7 @@ public class AuthenticationService {
         if(!resetPsw.isExpired()){
             if(jwtService.isTokenValid(token,user)){
                 if(resetPasswordDto.getPassword().equals(resetPasswordDto.getRepeatPassword())){
-                    user.setPassword(resetPasswordDto.getPassword());
+                    user.setPassword(passwordEncoder.encode(resetPasswordDto.getPassword()));
                     repository.save(user);
                     resetPsw.setExpireAt(LocalDateTime.now());
                     resetPswRepository.save(resetPsw);

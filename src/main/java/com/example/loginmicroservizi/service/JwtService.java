@@ -86,6 +86,14 @@ public class JwtService {
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
 
+        List<ResetPsw> resetPswList = resetPswRepository.findAllByUser(user);
+        for(ResetPsw i : resetPswList){
+            if(!i.isExpired()){
+                i.setExpireAt(LocalDateTime.now());
+                resetPswRepository.save(i);
+            }
+        }
+
         var resetPsw = ResetPsw.builder()
                 .resetToken(jwts)
                 .expireAt(LocalDateTime.now().plusSeconds(60 * 24))
