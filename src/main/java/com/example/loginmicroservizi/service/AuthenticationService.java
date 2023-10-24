@@ -151,7 +151,8 @@ public class AuthenticationService {
 
     //SEND MAIL
     public void triggerMail(String mail, String token) throws MessagingException {
-        senderService.sendSimpleEmail("bifulco.domenico01@gmail.com",
+        //TODO change "example@mail.com" to mail for send mail to the correct user
+        senderService.sendSimpleEmail(mail,
                 "Reset password",
                 token);
 
