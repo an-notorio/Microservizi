@@ -27,6 +27,11 @@ public class UsersController {
         return service.register(request);
     }
 
+    @RequestMapping(value="/confirm-account", method= {RequestMethod.GET, RequestMethod.POST})
+    public ResponseEntity<?> confirmUserAccount(@RequestParam("token")String confirmationToken) {
+        return service.confirmEmail(confirmationToken);
+    }
+
     @Operation(summary = "login")
     @PostMapping("/authenticate")
     public ResponseEntity<?> authenticate(

@@ -1,15 +1,14 @@
 package com.example.loginmicroservizi.service;
 
-import ch.qos.logback.core.net.SyslogOutputStream;
+
 import com.example.loginmicroservizi.dto.*;
+import com.example.loginmicroservizi.model.ConfirmationToken;
 import com.example.loginmicroservizi.model.ResetPsw;
 import com.example.loginmicroservizi.model.Role;
 import com.example.loginmicroservizi.model.User;
+import com.example.loginmicroservizi.repository.ConfirmationTokenRepository;
 import com.example.loginmicroservizi.repository.ResetPswRepository;
 import com.example.loginmicroservizi.repository.UsersRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +17,7 @@ import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,26 +43,8 @@ public class AuthenticationService {
     @Autowired
     private EmailSenderService senderService;
 
-    public ResponseEntity<?> register(RegisterRequest request) {
-        if(repository.findByEmail(request.getEmail()).isPresent()){
-            return ResponseEntity.ok("Email already used");
-        }else {
-            var user = User.builder()
-                    .firstName(request.getFirstName())
-                    .lastName(request.getLastName())
-                    .email(request.getEmail())
-                    .password(passwordEncoder.encode(request.getPassword()))
-                    .role(request.getRole())
-                    .attempts(0)
-                    .status(true)
-                    .build();
-            repository.save(user);
-            var jwtToken = jwtService.generateToken(user);
-            return ResponseEntity.ok(AuthenticationResponse.builder()
-                    .token(jwtToken)
-                    .build());
-        }
-    }
+    @Autowired
+    private ConfirmationTokenRepository confirmationTokenRepository;
 
     public ResponseEntity<?> authenticate(AuthenticationRequest request) {
         var user = repository.findByEmail(request.getEmail())
@@ -193,5 +175,39 @@ public class AuthenticationService {
         else{
             return new ResponseEntity<> ("Token expired",HttpStatus.FORBIDDEN);
         }
+    }
+    // CONFIRMATION EMAIL
+
+    public ResponseEntity<?> register(RegisterRequest request) {
+        if (repository.existsByEmail(request.getEmail())) {
+            return ResponseEntity.badRequest().body("Error: Email is already in use!");
+        }
+        var user = User.builder()
+                    .firstName(request.getFirstName())
+                    .lastName(request.getLastName())
+                    .email(request.getEmail())
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .role(request.getRole())
+                    .attempts(0)
+                    .status(true)
+                    .build();
+        repository.save(user);
+        ConfirmationToken confirmationToken = new ConfirmationToken(user);
+        confirmationTokenRepository.save(confirmationToken);
+        senderService.sendSimpleEmail(user.getEmail(), "Complete Registration!", "To confirm your account, please click here : "
+                +"http://localhost:8081/api/confirm-account?token="+confirmationToken.getConfirmationToken());
+        System.out.println("Confirmation Token: " + confirmationToken.getConfirmationToken());
+        return ResponseEntity.ok("Verify email by the link sent on your email address");
+    }
+    public ResponseEntity<?> confirmEmail(String confirmationToken) {
+        ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken);
+        if(token != null)
+        {
+            User user = repository.findAllByEmail(token.getUser().getEmail()).get(0);
+            user.setEnabled(true);
+            repository.save(user);
+            return ResponseEntity.ok("Email verified successfully!");
+        }
+        return ResponseEntity.badRequest().body("Error: Couldn't verify email");
     }
 }

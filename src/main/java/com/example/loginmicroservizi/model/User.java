@@ -42,6 +42,7 @@ public class User implements UserDetails {
     private Date creationDate;
     @UpdateTimestamp
     private Date updateDate;
+    private boolean isEnabled;
 
 
     @ManyToMany(fetch = FetchType.EAGER)
