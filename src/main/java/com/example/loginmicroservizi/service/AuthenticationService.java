@@ -1,6 +1,5 @@
 package com.example.loginmicroservizi.service;
 
-
 import com.example.loginmicroservizi.dto.*;
 import com.example.loginmicroservizi.model.ConfirmationToken;
 import com.example.loginmicroservizi.model.ResetPsw;
@@ -49,13 +48,13 @@ public class AuthenticationService {
     public ResponseEntity<?> authenticate(AuthenticationRequest request) {
         var user = repository.findByEmail(request.getEmail())
                 .orElseThrow();
-        if(user.getAttempts()<3) {
+        if (user.isStatus() && user.isEnabled()) {
             try{
                 authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(
-                                request.getEmail(),
-                                request.getPassword()
-                        )
+                    new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                    )
                 );}
             catch (Exception e){
                 user.setAttempts(user.getAttempts()+1);
@@ -66,24 +65,22 @@ public class AuthenticationService {
                 return ResponseEntity.ok("Error - Wrong Password");
             }
             user.setAttempts(0);
-            if (user.isStatus()) {
-                repository.save(user);
-                var jwtToken = jwtService.generateToken(user);
-                return ResponseEntity.ok(AuthenticationResponse.builder()
-                        .token(jwtToken)
-                        .build());
-            } else {
-                return ResponseEntity.ok("User is disabled");
+            repository.save(user);
+            var jwtToken = jwtService.generateToken(user);
+            return ResponseEntity.ok(AuthenticationResponse.builder()
+                    .token(jwtToken)
+                    .build());
+        } else {
+            if(user.getAttempts()==3){
+                return new ResponseEntity<>("Error - max attempts reached - User Disabled", HttpStatus.FORBIDDEN);
             }
-        }else{
-            return ResponseEntity.ok("Error - max attempts reached - User Disabled"); //TODO temporary disable login
+            return new ResponseEntity<>("User is disabled", HttpStatus.FORBIDDEN);
         }
     }
 
     public void updateUser(RegisterRequest request, Integer userId) {
         // Retrieve the original user from the repository
         Optional<User> userOptional = repository.findById(userId);
-
         if (userOptional.isPresent()) {
             User originalUser = userOptional.get();
             String firstName = (request.getFirstName() != null && !request.getFirstName().isEmpty()) ? request.getFirstName() : originalUser.getFirstName();
@@ -91,7 +88,6 @@ public class AuthenticationService {
             String email = (request.getEmail() != null && !request.getEmail().isEmpty()) ? request.getEmail() : originalUser.getEmail();
             String password = (request.getPassword() != null && !request.getPassword().isEmpty()) ? passwordEncoder.encode(request.getPassword()) : originalUser.getPassword();
             List<Role> role = ((request.getRole() != null && !request.getRole().isEmpty()) ? request.getRole() : originalUser.getRole());
-
             var updatedUser = User.builder()
                     .firstName(firstName)
                     .lastName(lastName)
@@ -111,14 +107,12 @@ public class AuthenticationService {
 
     public UserDto getUser(Integer userId){
         User user = repository.findByUserId(userId);
-
         var userToShow = UserDto.builder()
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())
                 .role(user.getRole())
                 .build();
-
         return userToShow;
     }
 
@@ -139,8 +133,6 @@ public class AuthenticationService {
                 token);
     }
 
-
-
     public void forgotPassword(String email) throws MessagingException {
         User user = repository.findAllByEmail(email).get(0);
         String token = jwtService.generateTokenResetPsw(user);
@@ -149,7 +141,6 @@ public class AuthenticationService {
         triggerMail(email, url);
         var resetPsw = ResetPsw.builder()
                 .resetToken(token);
-
     }
 
     public ResponseEntity<?> resetPassword(ResetPasswordDto resetPasswordDto, String token){
