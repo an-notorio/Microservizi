@@ -99,7 +99,7 @@ public class AuthenticationService {
     }
 
     public void updateUser(RegisterRequest request, Integer userId) {
-        // Recupera l'utente originale dal repository
+        // Retrieve the original user from the repository
         Optional<User> userOptional = repository.findById(userId);
 
         if (userOptional.isPresent()) {
@@ -155,8 +155,9 @@ public class AuthenticationService {
         senderService.sendSimpleEmail(mail,
                 "Reset password",
                 token);
-
     }
+
+
 
     public void forgotPassword(String email) throws MessagingException {
         User user = repository.findAllByEmail(email).get(0);
