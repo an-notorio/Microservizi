@@ -5,6 +5,7 @@ import com.example.loginmicroservizi.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class UsersController {
     @Operation(summary = "register a USER")
     @PostMapping("/register")
     public ResponseEntity<?> register(
-            @RequestBody RegisterRequest request
+            @RequestBody @Valid RegisterRequest request
     ){
         return service.register(request);
     }
