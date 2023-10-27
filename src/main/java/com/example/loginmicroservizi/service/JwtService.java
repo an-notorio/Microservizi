@@ -10,6 +10,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -31,8 +32,12 @@ public class JwtService {
     @Autowired
     private ResetPswRepository resetPswRepository;
 
-
-    private static final String SECRET_KEY = "44993b7ba1f547e5c2dce92e3f341c63e1631793a7e8490e53a2c0d4b2613f17";
+    @Value("${application.security.jwt.secret-key}")
+    private String secretKey;
+    @Value("${application.security.jwt.expiration}")
+    private long  jwtExpiration;
+    @Value("${application.security.jwt.refresh-token.expiration}")
+    private long  refreshExpiration;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -47,9 +52,31 @@ public class JwtService {
         return generateToken(new HashMap<>(), userDetails);
     }
 
+    public String generateRefreshToken(
+            UserDetails userDetails
+    ){
+        Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
+        User user = usersRepository.findAllByEmail(userDetails.getUsername()).get(0);
+        List<SimpleGrantedAuthority> authorities = user.getRole().stream().map(role -> new SimpleGrantedAuthority("" + role.getRole())).collect(Collectors.toList());
+        claims.put("roles", authorities);
+        return buildToken(new HashMap<>(), userDetails, refreshExpiration);
+    }
+
     public String generateToken(
             Map<String, Object> extraClaims,
             UserDetails userDetails
+    ){
+        Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
+        User user = usersRepository.findAllByEmail(userDetails.getUsername()).get(0);
+        List<SimpleGrantedAuthority> authorities = user.getRole().stream().map(role -> new SimpleGrantedAuthority("" + role.getRole())).collect(Collectors.toList());
+        claims.put("roles", authorities);
+        return buildToken(claims, userDetails, jwtExpiration);
+    }
+
+    public String buildToken(
+            Map<String, Object> extraClaims,
+            UserDetails userDetails,
+            long expiration
     ){
         Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
         User user = usersRepository.findAllByEmail(userDetails.getUsername()).get(0);
@@ -60,7 +87,7 @@ public class JwtService {
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -82,7 +109,7 @@ public class JwtService {
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 30))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
 
@@ -124,7 +151,7 @@ public class JwtService {
     }
 
     private Key getSignInKey(){
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }
