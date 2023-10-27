@@ -1,12 +1,11 @@
 package com.example.loginmicroservizi.service;
 
+import com.example.loginmicroservizi.common.TokenType;
 import com.example.loginmicroservizi.dto.*;
-import com.example.loginmicroservizi.model.ConfirmationToken;
-import com.example.loginmicroservizi.model.ResetPsw;
-import com.example.loginmicroservizi.model.Role;
-import com.example.loginmicroservizi.model.User;
+import com.example.loginmicroservizi.model.*;
 import com.example.loginmicroservizi.repository.ConfirmationTokenRepository;
 import com.example.loginmicroservizi.repository.ResetPswRepository;
+import com.example.loginmicroservizi.repository.TokenRepository;
 import com.example.loginmicroservizi.repository.UsersRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
@@ -39,6 +38,7 @@ import java.util.Optional;
 public class AuthenticationService {
 
     private final UsersRepository repository;
+    private final TokenRepository tokenRepository;
     private final ResetPswRepository resetPswRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -105,11 +105,13 @@ public class AuthenticationService {
                 return ResponseEntity.ok("Error - Wrong Password");
             }
             user.setAttempts(0);
-            repository.save(user);
-            var jwtToken = jwtService.generateToken(user);
+            var savedUser = repository.save(user);
+            var accessToken = jwtService.generateToken(user);
+            revokedAllUserTokens(user);
+            saveUserToken(savedUser, accessToken);
             var refreshToken = jwtService.generateRefreshToken(user);
             return ResponseEntity.ok(AuthenticationResponse.builder()
-                    .accessToken(jwtToken)
+                    .accessToken(accessToken)
                     .refreshToken(refreshToken)
                     .build());
         } else {
@@ -119,6 +121,8 @@ public class AuthenticationService {
             return new ResponseEntity<>("User is disabled", HttpStatus.FORBIDDEN);
         }
     }
+
+
 
     public void updateUser(RegisterRequest request, Integer userId) {
         // Retrieve the original user from the repository
@@ -234,5 +238,27 @@ public class AuthenticationService {
                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
             }
         }
+    }
+
+    private void revokedAllUserTokens(User user){
+        var validUserTokens = tokenRepository.findAllValidTokensByUser(user.getUserId());
+        if (validUserTokens.isEmpty())
+            return;
+        validUserTokens.forEach(t -> {
+            t.setExpired(true);
+            t.setRevoked(true);
+        });
+        tokenRepository.saveAll(validUserTokens);
+    }
+
+    private void saveUserToken(User savedUser, String jwtToken) {
+        var token = Token.builder()
+                .user(savedUser)
+                .token(jwtToken)
+                .tokenType(TokenType.BEARER)
+                .revoked(false)
+                .expired(false)
+                .build();
+        tokenRepository.save(token);
     }
 }

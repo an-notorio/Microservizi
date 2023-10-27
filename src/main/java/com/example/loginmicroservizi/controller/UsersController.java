@@ -100,6 +100,4 @@ public class UsersController {
     public  ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto resetPasswordDto, @RequestParam(required = false) String token){
         return service.resetPassword(resetPasswordDto, token);
     }
-
-
 }

@@ -51,6 +51,9 @@ public class User implements UserDetails {
     private List<Role> role;
     private boolean deleted = Boolean.FALSE;
 
+    @OneToMany(mappedBy = "user")
+    private List<Token> tokens;
+
 
     @Transient
     private Collection<? extends GrantedAuthority> authorities;
