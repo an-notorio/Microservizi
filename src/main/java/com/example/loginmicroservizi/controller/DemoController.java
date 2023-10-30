@@ -1,6 +1,7 @@
 package com.example.loginmicroservizi.controller;
 
 import com.example.loginmicroservizi.service.AuthenticationService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

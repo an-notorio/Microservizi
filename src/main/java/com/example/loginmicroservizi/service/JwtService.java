@@ -35,9 +35,9 @@ public class JwtService {
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
     @Value("${application.security.jwt.expiration}")
-    private long  jwtExpiration;
+    private long jwtExpiration;
     @Value("${application.security.jwt.refresh-token.expiration}")
-    private long  refreshExpiration;
+    private long refreshExpiration;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -54,7 +54,7 @@ public class JwtService {
 
     public String generateRefreshToken(
             UserDetails userDetails
-    ){
+    ) {
         Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
         User user = usersRepository.findAllByEmail(userDetails.getUsername()).get(0);
         List<SimpleGrantedAuthority> authorities = user.getRole().stream().map(role -> new SimpleGrantedAuthority("" + role.getRole())).collect(Collectors.toList());
@@ -65,7 +65,7 @@ public class JwtService {
     public String generateToken(
             Map<String, Object> extraClaims,
             UserDetails userDetails
-    ){
+    ) {
         Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
         User user = usersRepository.findAllByEmail(userDetails.getUsername()).get(0);
         List<SimpleGrantedAuthority> authorities = user.getRole().stream().map(role -> new SimpleGrantedAuthority("" + role.getRole())).collect(Collectors.toList());
@@ -77,7 +77,7 @@ public class JwtService {
             Map<String, Object> extraClaims,
             UserDetails userDetails,
             long expiration
-    ){
+    ) {
         Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
         User user = usersRepository.findAllByEmail(userDetails.getUsername()).get(0);
         List<SimpleGrantedAuthority> authorities = user.getRole().stream().map(role -> new SimpleGrantedAuthority("" + role.getRole())).collect(Collectors.toList());
@@ -99,7 +99,7 @@ public class JwtService {
     public String generateTokenResetPsw(
             Map<String, Object> extraClaims,
             UserDetails userDetails
-    ){
+    ) {
         Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
         User user = usersRepository.findAllByEmail(userDetails.getUsername()).get(0);
         List<SimpleGrantedAuthority> authorities = user.getRole().stream().map(role -> new SimpleGrantedAuthority("" + role.getRole())).collect(Collectors.toList());
@@ -114,8 +114,8 @@ public class JwtService {
                 .compact();
 
         List<ResetPsw> resetPswList = resetPswRepository.findAllByUser(user);
-        for(ResetPsw i : resetPswList){
-            if(!i.isExpired()){
+        for (ResetPsw i : resetPswList) {
+            if (!i.isExpired()) {
                 i.setExpireAt(LocalDateTime.now());
                 resetPswRepository.save(i);
             }
@@ -137,9 +137,13 @@ public class JwtService {
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
-    private boolean isTokenExpired(String token) { return extractExpiration(token).before(new Date()); }
+    private boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
 
-    private Date extractExpiration(String token) { return extractClaim(token, Claims::getExpiration); }
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
 
     private Claims extractAllClaim(String token) {
         return Jwts
@@ -150,7 +154,7 @@ public class JwtService {
                 .getBody();
     }
 
-    private Key getSignInKey(){
+    private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }

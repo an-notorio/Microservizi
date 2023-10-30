@@ -16,7 +16,8 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-@EnableMethodSecurity(securedEnabled = true, prePostEnabled = true)
+@EnableMethodSecurity(securedEnabled = true)
+@SuppressWarnings("removal") //Used for deprecated and sign as removal parameter because valid yet
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthFilther;

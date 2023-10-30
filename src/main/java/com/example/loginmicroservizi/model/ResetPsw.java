@@ -23,7 +23,6 @@ public class ResetPsw {
     private Long idReset;
     @Column(unique = true)
     private String resetToken;
-    //TODO Need to be rewrite when used
     private LocalDateTime expireAt;
     @CreationTimestamp
     private Timestamp timeStamp;
